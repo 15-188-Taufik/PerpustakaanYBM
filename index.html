@@ -1,140 +1,203 @@
-    <!DOCTYPE html>
-    <html lang="id">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Sistem Inventaris Buku</title>
-        <style>
-            :root {
-                --primary-color: #0d6efd;
-                --background-color: #f8f9fa;
-                --font-color: #212529;
-                --border-color: #dee2e6;
-                --success-color: #198754;
-                --danger-color: #dc3545;
-            }
-            body { 
-                font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-                background-color: var(--background-color); 
-                color: var(--font-color);
-                margin: 0;
-                padding: 1rem;
-            }
-            .container { 
-                max-width: 800px; 
-                margin: 2rem auto; 
-                padding: 2rem; 
-                background-color: #fff; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-                border-radius: 8px; 
-            }
-            h1 { text-align: center; color: var(--primary-color); }
-            #message-bar {
-                text-align: center; padding: 1rem; margin-bottom: 1rem;
-                border-radius: 5px; display: none;
-            }
-            #message-bar.loading { background-color: #e2e3e5; }
-            #message-bar.success { background-color: #d1e7dd; color: #0f5132; }
-            #message-bar.error { background-color: #f8d7da; color: #842029; }
-            table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
-            th, td { padding: 12px 15px; border: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
-            th { background-color: #f8f9fa; }
-            select { padding: 8px; border-radius: 5px; border: 1px solid #ced4da; width: 100%; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>📚 Sistem Inventaris Buku</h1>
-            <div id="message-bar"></div>
-            <div id="table-container"></div>
-        </div>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Inventaris Buku</title>
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --background-color: #f8f9fa;
+            --font-color: #212529;
+            --border-color: #dee2e6;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --grey-color: #6c757d;
+        }
+        body { 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--background-color); 
+            color: var(--font-color);
+            margin: 0;
+            padding: 1rem;
+            line-height: 1.5;
+        }
+        .container { 
+            max-width: 950px; 
+            margin: 2rem auto; 
+            padding: 2rem; 
+            background-color: #fff; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+            border-radius: 8px; 
+        }
+        h1 { 
+            text-align: center; 
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+        #message-bar {
+            text-align: center; 
+            padding: 1rem; 
+            margin-bottom: 1.5rem;
+            border-radius: 5px; 
+            display: none; /* Hidden by default */
+            font-weight: 500;
+        }
+        #message-bar.loading { background-color: #e2e3e5; color: #383d41; }
+        #message-bar.success { background-color: #d1e7dd; color: #0f5132; }
+        #message-bar.error { background-color: #f8d7da; color: #842029; }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 1.5rem; 
+        }
+        th, td { 
+            padding: 12px 15px; 
+            border: 1px solid var(--border-color); 
+            text-align: left; 
+            vertical-align: middle; 
+        }
+        th { 
+            background-color: #f8f9fa; 
+            font-weight: 600;
+        }
+        td.peminjam-cell { 
+            font-style: italic; 
+            color: var(--grey-color); 
+        }
+        select { 
+            padding: 8px; 
+            border-radius: 5px; 
+            border: 1px solid #ced4da; 
+            width: 100%; 
+            background-color: #fff;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Sistem Inventaris Buku</h1>
+        <div id="message-bar"></div>
+        <div id="table-container"></div>
+    </div>
 
-        <script>
-            // --- PENTING! GANTI URL DI BAWAH INI ---
-            const API_URL = 'https://script.google.com/macros/s/AKfycbx6h7Mdw3dlcBNQA04fWQ8aWOc0eWrbaw495eZ-OphFV2o0p3YV8Dq95X4ffVSqorOBTg/exec';
+    <script>
+        // --- PENTING! GANTI URL DI BAWAH INI DENGAN URL WEB APP ANDA ---
+        const API_URL = 'PASTE_URL_WEB_APP_ANDA_DI_SINI';
 
-            const messageBar = document.getElementById('message-bar');
-            const tableContainer = document.getElementById('table-container');
+        const messageBar = document.getElementById('message-bar');
+        const tableContainer = document.getElementById('table-container');
 
-            // Fungsi untuk menampilkan pesan status
-            function showMessage(type, text) {
-                messageBar.className = type;
-                messageBar.textContent = text;
-                messageBar.style.display = 'block';
-            }
+        // Event listener untuk memuat data saat halaman dibuka
+        document.addEventListener('DOMContentLoaded', loadBooks);
 
-            // 1. Ambil data buku saat halaman dimuat
-            document.addEventListener('DOMContentLoaded', () => {
-                showMessage('loading', 'Memuat data buku...');
-                fetch(API_URL)
-                    .then(response => response.json())
-                    .then(jsonResponse => {
-                        if (jsonResponse.result === 'success') {
-                            renderTable(jsonResponse.data);
-                            messageBar.style.display = 'none';
-                        } else {
-                            throw new Error(jsonResponse.message);
-                        }
-                    })
-                    .catch(error => {
-                        showMessage('error', 'Gagal memuat data: ' + error.message);
-                    });
-            });
+        // Fungsi untuk menampilkan pesan status ke pengguna
+        function showMessage(type, text) {
+            messageBar.className = type;
+            messageBar.textContent = text;
+            messageBar.style.display = 'block';
+        }
 
-            // 2. Fungsi untuk menampilkan data ke dalam tabel
-            function renderTable(books) {
-                if (books.length === 0) {
-                    showMessage('loading', 'Tidak ada data buku.');
-                    return;
-                }
-                let tableHTML = '<table><thead><tr><th>Kode Buku</th><th>Judul</th><th>Status</th></tr></thead><tbody>';
-                books.forEach(book => {
-                    tableHTML += `
-                        <tr>
-                            <td>${book.kode}</td>
-                            <td>${book.judul}</td>
-                            <td>
-                                <select onchange="updateStatus('${book.kode}', this.value)">
-                                    <option value="Tersedia" ${book.status === 'Tersedia' ? 'selected' : ''}>Tersedia</option>
-                                    <option value="Dipinjam" ${book.status === 'Dipinjam' ? 'selected' : ''}>Dipinjam</option>
-                                </select>
-                            </td>
-                        </tr>
-                    `;
-                });
-                tableHTML += '</tbody></table>';
-                tableContainer.innerHTML = tableHTML;
-            }
-
-            // 3. Fungsi untuk mengirim pembaruan status
-            function updateStatus(kodeBuku, newStatus) {
-                showMessage('loading', `Memperbarui status untuk ${kodeBuku}...`);
-                
-                const payload = {
-                    kodeBuku: kodeBuku,
-                    newStatus: newStatus
-                };
-
-                fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain;charset=utf-8', // Apps Script requires this header for simple POST
-                    },
-                    body: JSON.stringify(payload) 
-                })
+        // Fungsi utama untuk memuat data buku dari Google Apps Script API
+        function loadBooks() {
+            showMessage('loading', 'Memuat data buku...');
+            fetch(API_URL)
                 .then(response => response.json())
                 .then(jsonResponse => {
                     if (jsonResponse.result === 'success') {
-                        showMessage('success', jsonResponse.message);
+                        renderTable(jsonResponse.data);
+                        messageBar.style.display = 'none'; // Sembunyikan pesan setelah berhasil
                     } else {
                         throw new Error(jsonResponse.message);
                     }
                 })
                 .catch(error => {
-                    showMessage('error', 'Gagal memperbarui: ' + error.message);
+                    showMessage('error', 'Gagal memuat data: ' + error.message);
                 });
+        }
+
+        // Fungsi untuk membuat dan menampilkan tabel HTML dari data buku
+        function renderTable(books) {
+            if (!books || books.length === 0) {
+                showMessage('loading', 'Tidak ada data buku yang ditemukan.');
+                tableContainer.innerHTML = '';
+                return;
             }
-        </script>
-    </body>
-    </html>
-    
+            // Tambahkan header tabel baru
+            let tableHTML = '<table><thead><tr><th>Kode Buku</th><th>Judul</th><th>Status</th><th>Dipinjam Oleh</th></tr></thead><tbody>';
+            
+            books.forEach(book => {
+                tableHTML += `
+                    <tr>
+                        <td>${book.kode}</td>
+                        <td>${book.judul}</td>
+                        <td>
+                            <select onchange="handleStatusChange(this, '${book.kode}')">
+                                <option value="Tersedia" ${book.status === 'Tersedia' ? 'selected' : ''}>Tersedia</option>
+                                <option value="Dipinjam" ${book.status === 'Dipinjam' ? 'selected' : ''}>Dipinjam</option>
+                            </select>
+                        </td>
+                        <td class="peminjam-cell">${book.peminjam || '-'}</td>
+                    </tr>
+                `;
+            });
+            tableHTML += '</tbody></table>';
+            tableContainer.innerHTML = tableHTML;
+        }
+        
+        // Fungsi yang dipanggil saat dropdown status diubah
+        function handleStatusChange(selectElement, kodeBuku) {
+            const newStatus = selectElement.value;
+            let namaPeminjam = '';
+
+            // Jika status baru adalah "Dipinjam", minta nama peminjam
+            if (newStatus === 'Dipinjam') {
+                namaPeminjam = prompt("Silakan masukkan nama peminjam:");
+                // Jika pengguna membatalkan (klik cancel) atau tidak mengisi nama, batalkan aksi
+                if (namaPeminjam === null || namaPeminjam.trim() === '') {
+                    alert('Input nama peminjam dibatalkan atau kosong. Status tidak diubah.');
+                    selectElement.value = 'Tersedia'; // Kembalikan pilihan ke 'Tersedia'
+                    return; // Hentikan fungsi
+                }
+            }
+            
+            // Lanjutkan untuk memperbarui status
+            updateStatus(kodeBuku, newStatus, namaPeminjam.trim());
+        }
+
+        // Fungsi untuk mengirim pembaruan ke Google Apps Script
+        function updateStatus(kodeBuku, newStatus, namaPeminjam = '') {
+            showMessage('loading', `Memperbarui status untuk ${kodeBuku}...`);
+            
+            const payload = {
+                kodeBuku: kodeBuku,
+                newStatus: newStatus,
+                namaPeminjam: namaPeminjam
+            };
+
+            fetch(API_URL, {
+                method: 'POST',
+                // Apps Script seringkali lebih mudah menangani `text/plain` untuk post sederhana
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload) 
+            })
+            .then(response => response.json())
+            .then(jsonResponse => {
+                if (jsonResponse.result === 'success') {
+                    showMessage('success', jsonResponse.message);
+                    // Muat ulang seluruh data untuk memastikan tabel sinkron dengan spreadsheet
+                    setTimeout(loadBooks, 1500); // Beri jeda agar pesan sukses terbaca
+                } else {
+                    throw new Error(jsonResponse.message);
+                }
+            })
+            .catch(error => {
+                showMessage('error', 'Gagal memperbarui: ' + error.message);
+                // Muat ulang data untuk mengembalikan ke kondisi sebelum gagal
+                setTimeout(loadBooks, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
