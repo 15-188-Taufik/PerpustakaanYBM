@@ -4,200 +4,246 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Inventaris Buku</title>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         :root {
-            --primary-color: #0d6efd;
-            --background-color: #f8f9fa;
-            --font-color: #212529;
-            --border-color: #dee2e6;
-            --success-color: #198754;
-            --danger-color: #dc3545;
-            --grey-color: #6c757d;
+            --primary-color: #0d6efd; --danger-color: #dc3545;
+            --background-color: #f0f2f5; --card-bg: #ffffff;
+            --font-color: #333; --label-color: #6c757d; --border-color: #dee2e6;
         }
         body { 
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: var(--background-color); 
-            color: var(--font-color);
-            margin: 0;
-            padding: 1rem;
-            line-height: 1.5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color); margin: 0;
+            display: flex; align-items: center; justify-content: center; min-height: 100vh;
         }
-        .container { 
-            max-width: 950px; 
-            margin: 2rem auto; 
-            padding: 2rem; 
-            background-color: #fff; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-            border-radius: 8px; 
+        /* --- Styles for Auth Pages (Login/Signup) --- */
+        .auth-container {
+            width: 100%; max-width: 400px;
+            padding: 2rem; background-color: var(--card-bg);
+            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-        h1 { 
-            text-align: center; 
-            color: var(--primary-color);
-            margin-bottom: 1.5rem;
+        .auth-container h1 { font-size: 1.5rem; text-align: center; margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        .form-group input {
+            width: 100%; padding: 10px; font-size: 1rem;
+            border: 1px solid var(--border-color); border-radius: 5px; box-sizing: border-box;
         }
-        #message-bar {
-            text-align: center; 
-            padding: 1rem; 
-            margin-bottom: 1.5rem;
-            border-radius: 5px; 
-            display: none; /* Hidden by default */
-            font-weight: 500;
+        .auth-btn {
+            width: 100%; padding: 12px; font-size: 1rem; font-weight: 600;
+            color: white; background-color: var(--primary-color);
+            border: none; border-radius: 5px; cursor: pointer; margin-top: 1rem;
         }
-        #message-bar.loading { background-color: #e2e3e5; color: #383d41; }
+        .toggle-link { text-align: center; margin-top: 1rem; }
+        .toggle-link a { color: var(--primary-color); text-decoration: none; font-weight: 500; }
+
+        /* --- Styles for Main App --- */
+        .main-app-container { max-width: 1100px; width: 100%; margin: 1rem auto; padding: 1rem; }
+        .main-app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .main-app-header h1 { font-size: 1.6rem; margin: 0; }
+        #logoutBtn { background-color: var(--danger-color); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .controls-container { display: flex; gap: 10px; margin-bottom: 1.5rem; }
+        #searchInput { flex-grow: 1; padding: 12px 15px; font-size: 1rem; border: 1px solid var(--border-color); border-radius: 8px; }
+        #scanButton { padding: 0 20px; font-size: 1rem; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; }
+        .book-card { background-color: var(--card-bg); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.07); }
+        .card-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #f0f0f0; }
+        .book-card .card-item:last-child { border-bottom: none; }
+        .card-item .label { font-weight: 600; color: var(--label-color); }
+        .card-item .data { text-align: right; flex-basis: 60%; }
+        .btn { padding: 8px 16px; border: none; border-radius: 5px; color: white; font-size: 0.9rem; font-weight: 500; cursor: pointer; }
+        .btn-pinjam { background-color: var(--primary-color); }
+        .btn-kembalikan { background-color: var(--danger-color); }
+        .btn-disabled { background-color: var(--label-color); cursor: not-allowed; }
+        #message-bar { text-align: center; padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px; display: none; font-weight: 500; }
+        #message-bar.loading, #message-bar.success, #message-bar.error { display: block; }
+        #message-bar.loading { background-color: #e2e3e5; }
         #message-bar.success { background-color: #d1e7dd; color: #0f5132; }
         #message-bar.error { background-color: #f8d7da; color: #842029; }
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 1.5rem; 
-        }
-        th, td { 
-            padding: 12px 15px; 
-            border: 1px solid var(--border-color); 
-            text-align: left; 
-            vertical-align: middle; 
-        }
-        th { 
-            background-color: #f8f9fa; 
-            font-weight: 600;
-        }
-        td.peminjam-cell { 
-            font-style: italic; 
-            color: var(--grey-color); 
-        }
-        select { 
-            padding: 8px; 
-            border-radius: 5px; 
-            border: 1px solid #ced4da; 
-            width: 100%; 
-            background-color: #fff;
-            cursor: pointer;
+        #scanner-container { width: 100%; max-width: 400px; margin: 20px auto; border-radius: 8px; overflow: hidden; display: none; }
+        
+        /* FIX: Sembunyikan header tabel secara default (Mobile-First) */
+        .book-list-header { display: none; }
+
+        @media screen and (min-width: 769px) {
+            .main-app-header h1 { font-size: 2rem; }
+            /* FIX: Tampilkan header hanya di layar besar */
+            .book-list-header { display: grid; grid-template-columns: 3fr 2fr 1.5fr; gap: 1rem; padding: 0 1rem; margin-bottom: 0.5rem; font-weight: 600; color: var(--label-color); }
+            .book-card { display: grid; grid-template-columns: 3fr 2fr 1.5fr; gap: 1rem; align-items: center; padding: 0.75rem 1rem; box-shadow: none; border: 1px solid var(--border-color); }
+            .card-item { display: contents; }
+            .card-item .label { display: none; }
+            .card-item .data { text-align: left; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📚 Sistem Inventaris Buku</h1>
+
+    <!-- Halaman Login -->
+    <div id="loginPage" class="auth-container">
+        <h1>Login Perpustakaan</h1>
+        <form id="loginForm">
+            <div class="form-group"><label for="loginUsername">Username</label><input type="text" id="loginUsername" required></div>
+            <div class="form-group"><label for="loginPassword">Password</label><input type="password" id="loginPassword" required></div>
+            <button type="submit" class="auth-btn">Login</button>
+        </form>
+        <div id="loginMessage"></div>
+        <p class="toggle-link">Belum punya akun? <a href="#" onclick="showPage('signupPage')">Daftar di sini</a></p>
+    </div>
+
+    <!-- Halaman Sign-up -->
+    <div id="signupPage" class="auth-container" style="display: none;">
+        <h1>Daftar Akun Baru</h1>
+        <form id="signupForm">
+            <div class="form-group"><label for="signupUsername">Username</label><input type="text" id="signupUsername" required></div>
+            <div class="form-group"><label for="signupPassword">Password</label><input type="password" id="signupPassword" required></div>
+            <div class="form-group"><label for="confirmPassword">Konfirmasi Password</label><input type="password" id="confirmPassword" required></div>
+            <button type="submit" class="auth-btn">Daftar</button>
+        </form>
+        <div id="signupMessage"></div>
+        <p class="toggle-link">Sudah punya akun? <a href="#" onclick="showPage('loginPage')">Login di sini</a></p>
+    </div>
+
+    <!-- Aplikasi Utama -->
+    <div id="mainAppPage" class="main-app-container" style="display: none;">
+        <div class="main-app-header">
+            <a href="https://15-188-taufik.github.io/InventarisYBM/" rel="noopener noreferrer" style="text-decoration: none; color: inherit;">
+                <h1>📚 PERPUSTAKAAN YBM</h1>
+            </a>
+            <button id="logoutBtn">Logout</button>
+        </div>
+        <div class="controls-container">
+            <input type="text" id="searchInput" onkeyup="searchBooks()" placeholder="Cari berdasarkan judul atau kode...">
+            <button id="scanButton">Scan Barcode</button>
+        </div>
+        <div id="scanner-container"><div id="reader"></div></div>
         <div id="message-bar"></div>
-        <div id="table-container"></div>
+        <div class="book-list-header"><span>JUDUL</span><span>DIPINJAM OLEH</span><span>AKSI</span></div>
+        <div id="book-list-container"></div>
     </div>
 
     <script>
-        // --- PENTING! GANTI URL DI BAWAH INI DENGAN URL WEB APP ANDA ---
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxz0H6Bu3xoQazRbdeTy77hsp-WEjfwC2oP4NON5MS6QQ6OZHZ-EbxSgYobshLUp0DRBg/exec';
-
-        const messageBar = document.getElementById('message-bar');
-        const tableContainer = document.getElementById('table-container');
-
-        // Event listener untuk memuat data saat halaman dibuka
-        document.addEventListener('DOMContentLoaded', loadBooks);
-
-        // Fungsi untuk menampilkan pesan status ke pengguna
-        function showMessage(type, text) {
-            messageBar.className = type;
-            messageBar.textContent = text;
-            messageBar.style.display = 'block';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwjjV9D-1jzm67J6olpbQH_M8PeDLpyTeb7V6p3jScWOFdBpSRaF0eMtpkD0Hqb51W_zw/exec';
+        const pages = ['loginPage', 'signupPage', 'mainAppPage'];
+        
+        function showPage(pageId) {
+            pages.forEach(id => { document.getElementById(id).style.display = (id === pageId) ? 'block' : 'none'; });
+            document.body.style.alignItems = (pageId === 'mainAppPage') ? 'flex-start' : 'center';
         }
 
-        // Fungsi utama untuk memuat data buku dari Google Apps Script API
-        function loadBooks() {
-            showMessage('loading', 'Memuat data buku...');
-            fetch(API_URL)
-                .then(response => response.json())
-                .then(jsonResponse => {
-                    if (jsonResponse.result === 'success') {
-                        renderTable(jsonResponse.data);
-                        messageBar.style.display = 'none'; // Sembunyikan pesan setelah berhasil
-                    } else {
-                        throw new Error(jsonResponse.message);
-                    }
-                })
-                .catch(error => {
-                    showMessage('error', 'Gagal memuat data: ' + error.message);
-                });
+        document.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('loggedInUser')) {
+                showPage('mainAppPage');
+                loadBooks();
+            } else {
+                showPage('loginPage');
+            }
+        });
+
+        async function apiCall(action, payload) {
+            const messageBar = document.getElementById(action.includes('login') || action.includes('signup') ? `${action.split(' ')[0]}Message` : 'message-bar');
+            showMessage(messageBar, 'loading', 'Memproses...');
+            try {
+                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, payload }) });
+                const result = await response.json();
+                if (result.result === 'success') { showMessage(messageBar, 'success', result.message); return result; } 
+                else { throw new Error(result.message); }
+            } catch (error) { showMessage(messageBar, 'error', error.message); throw error; }
         }
 
-        // Fungsi untuk membuat dan menampilkan tabel HTML dari data buku
-        function renderTable(books) {
-            if (!books || books.length === 0) {
-                showMessage('loading', 'Tidak ada data buku yang ditemukan.');
-                tableContainer.innerHTML = '';
+        function showMessage(element, type, text) {
+            if (!element) return;
+            element.className = type;
+            element.textContent = text;
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            try {
+                await apiCall('login', { username, password: document.getElementById('loginPassword').value });
+                sessionStorage.setItem('loggedInUser', username);
+                showPage('mainAppPage');
+                loadBooks();
+            } catch (error) {}
+        });
+
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('signupPassword').value;
+            if (password !== document.getElementById('confirmPassword').value) {
+                showMessage(document.getElementById('signupMessage'), 'error', 'Password tidak cocok!');
                 return;
             }
-            // Tambahkan header tabel baru
-            let tableHTML = '<table><thead><tr><th>Kode Buku</th><th>Judul</th><th>Status</th><th>Dipinjam Oleh</th></tr></thead><tbody>';
-            
-            books.forEach(book => {
-                tableHTML += `
-                    <tr>
-                        <td>${book.kode}</td>
-                        <td>${book.judul}</td>
-                        <td>
-                            <select onchange="handleStatusChange(this, '${book.kode}')">
-                                <option value="Tersedia" ${book.status === 'Tersedia' ? 'selected' : ''}>Tersedia</option>
-                                <option value="Dipinjam" ${book.status === 'Dipinjam' ? 'selected' : ''}>Dipinjam</option>
-                            </select>
-                        </td>
-                        <td class="peminjam-cell">${book.peminjam || '-'}</td>
-                    </tr>
-                `;
-            });
-            tableHTML += '</tbody></table>';
-            tableContainer.innerHTML = tableHTML;
+            try {
+                await apiCall('signup', { username: document.getElementById('signupUsername').value, password });
+                setTimeout(() => showPage('loginPage'), 2000);
+            } catch (error) {}
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            sessionStorage.removeItem('loggedInUser');
+            showPage('loginPage');
+        });
+
+        async function loadBooks() {
+            try {
+                const result = await apiCall('getBooks');
+                renderBooks(result.data);
+            } catch (error) {}
+        }
+
+        function renderBooks(books) {
+            const container = document.getElementById('book-list-container');
+            const loggedInUser = sessionStorage.getItem('loggedInUser');
+            if (!books || books.length === 0) { container.innerHTML = '<p>Tidak ada buku.</p>'; return; }
+            container.innerHTML = books.map(book => {
+                let actionButton;
+                if (book.status === 'Tersedia') {
+                    actionButton = `<button class="btn btn-pinjam" onclick="handleActionClick('${book.kode}', 'Tersedia')">Pinjam</button>`;
+                } else if (book.peminjam === loggedInUser) {
+                    actionButton = `<button class="btn btn-kembalikan" onclick="handleActionClick('${book.kode}', 'Dipinjam')">Kembalikan</button>`;
+                } else {
+                    actionButton = `<button class="btn btn-disabled" disabled>Dipinjam</button>`;
+                }
+                return `
+                    <div class="book-card" data-kode="${book.kode}">
+                        <div class="card-item"><span class="label">Judul</span><span class="data title">${book.judul}</span></div>
+                        <div class="card-item"><span class="label">Dipinjam Oleh</span><span class="data borrower">${book.peminjam || '-'}</span></div>
+                        <div class="card-item"><span class="label">Aksi</span><div class="data">${actionButton}</div></div>
+                    </div>`;
+            }).join('');
+        }
+
+        async function handleActionClick(kodeBuku, currentStatus) {
+            const loggedInUser = sessionStorage.getItem('loggedInUser');
+            let newStatus = (currentStatus === 'Tersedia') ? 'Dipinjam' : 'Tersedia';
+            let namaPeminjam = (currentStatus === 'Tersedia') ? loggedInUser : '';
+            try {
+                await apiCall('updateStatus', { kodeBuku, newStatus, namaPeminjam });
+                setTimeout(loadBooks, 1500);
+            } catch (error) {}
+        }
+
+        function searchBooks() {
+            const filter = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.getElementsByClassName('book-card');
+            for (const card of cards) {
+                const title = card.querySelector('.title').textContent.toLowerCase();
+                // FIX: Cari juga berdasarkan kode buku dari atribut data-kode
+                const code = card.dataset.kode.toLowerCase();
+                card.style.display = (title.includes(filter) || code.includes(filter)) ? "" : "none";
+            }
         }
         
-        // Fungsi yang dipanggil saat dropdown status diubah
-        function handleStatusChange(selectElement, kodeBuku) {
-            const newStatus = selectElement.value;
-            let namaPeminjam = '';
-
-            // Jika status baru adalah "Dipinjam", minta nama peminjam
-            if (newStatus === 'Dipinjam') {
-                namaPeminjam = prompt("Silakan masukkan nama peminjam:");
-                // Jika pengguna membatalkan (klik cancel) atau tidak mengisi nama, batalkan aksi
-                if (namaPeminjam === null || namaPeminjam.trim() === '') {
-                    alert('Input nama peminjam dibatalkan atau kosong. Status tidak diubah.');
-                    selectElement.value = 'Tersedia'; // Kembalikan pilihan ke 'Tersedia'
-                    return; // Hentikan fungsi
-                }
-            }
-            
-            // Lanjutkan untuk memperbarui status
-            updateStatus(kodeBuku, newStatus, namaPeminjam.trim());
-        }
-
-        // Fungsi untuk mengirim pembaruan ke Google Apps Script
-        function updateStatus(kodeBuku, newStatus, namaPeminjam = '') {
-            showMessage('loading', `Memperbarui status untuk ${kodeBuku}...`);
-            
-            const payload = {
-                kodeBuku: kodeBuku,
-                newStatus: newStatus,
-                namaPeminjam: namaPeminjam
-            };
-
-            fetch(API_URL, {
-                method: 'POST',
-                // Apps Script seringkali lebih mudah menangani `text/plain` untuk post sederhana
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload) 
-            })
-            .then(response => response.json())
-            .then(jsonResponse => {
-                if (jsonResponse.result === 'success') {
-                    showMessage('success', jsonResponse.message);
-                    // Muat ulang seluruh data untuk memastikan tabel sinkron dengan spreadsheet
-                    setTimeout(loadBooks, 1500); // Beri jeda agar pesan sukses terbaca
-                } else {
-                    throw new Error(jsonResponse.message);
-                }
-            })
-            .catch(error => {
-                showMessage('error', 'Gagal memperbarui: ' + error.message);
-                // Muat ulang data untuk mengembalikan ke kondisi sebelum gagal
-                setTimeout(loadBooks, 2000);
-            });
-        }
+        const html5QrCode = new Html5Qrcode("reader");
+        const onScanSuccess = (decodedText) => { document.getElementById('searchInput').value = decodedText; searchBooks(); stopScanner(); showMessage(document.getElementById('message-bar'), 'success', `Barcode terdeteksi: ${decodedText}`); };
+        const stopScanner = () => { html5QrCode.stop().then(() => document.getElementById('scanner-container').style.display = "none").catch(() => {}); }
+        document.getElementById('scanButton').addEventListener('click', () => {
+            const scannerContainer = document.getElementById('scanner-container');
+            if (scannerContainer.style.display === "block") { stopScanner(); return; }
+            scannerContainer.style.display = "block";
+            showMessage(document.getElementById('message-bar'), 'loading', 'Mempersiapkan kamera...');
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, () => {}).catch(() => showMessage(document.getElementById('message-bar'), 'error', 'Gagal mengakses kamera.'));
+        });
     </script>
 </body>
 </html>
