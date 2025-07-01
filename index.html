@@ -39,8 +39,11 @@
 
         /* --- Styles for Main App --- */
         .main-app-container { max-width: 1100px; width: 100%; margin: 1rem auto; padding: 1rem; }
-        .main-app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-        .main-app-header h1 { font-size: 1.6rem; margin: 0; }
+        .main-app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .header-title { flex-grow: 1; }
+        .header-title h1 { font-size: 1.6rem; margin: 0; }
+        /* Style untuk pesan selamat datang */
+        .welcome-text { font-size: 0.9rem; color: var(--label-color); margin: 4px 0 0 0; }
         #logoutBtn { background-color: var(--danger-color); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
         .controls-container { display: flex; gap: 10px; margin-bottom: 1.5rem; }
         #searchInput { flex-grow: 1; padding: 12px 15px; font-size: 1rem; border: 1px solid var(--border-color); border-radius: 8px; }
@@ -50,23 +53,22 @@
         .book-card .card-item:last-child { border-bottom: none; }
         .card-item .label { font-weight: 600; color: var(--label-color); }
         .card-item .data { text-align: right; flex-basis: 60%; }
-        .btn { padding: 8px 16px; border: none; border-radius: 5px; color: white; font-size: 0.9rem; font-weight: 500; cursor: pointer; }
+        .btn { padding: 8px 16px; border: none; border-radius: 5px; color: white; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: opacity 0.2s; }
         .btn-pinjam { background-color: var(--primary-color); }
         .btn-kembalikan { background-color: var(--danger-color); }
         .btn-disabled { background-color: var(--label-color); cursor: not-allowed; }
+        /* Style untuk menonaktifkan tombol */
+        button:disabled { opacity: 0.6; cursor: not-allowed !important; }
         #message-bar { text-align: center; padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px; display: none; font-weight: 500; }
         #message-bar.loading, #message-bar.success, #message-bar.error { display: block; }
         #message-bar.loading { background-color: #e2e3e5; }
         #message-bar.success { background-color: #d1e7dd; color: #0f5132; }
         #message-bar.error { background-color: #f8d7da; color: #842029; }
         #scanner-container { width: 100%; max-width: 400px; margin: 20px auto; border-radius: 8px; overflow: hidden; display: none; }
-        
-        /* FIX: Sembunyikan header tabel secara default (Mobile-First) */
         .book-list-header { display: none; }
 
         @media screen and (min-width: 769px) {
             .main-app-header h1 { font-size: 2rem; }
-            /* FIX: Tampilkan header hanya di layar besar */
             .book-list-header { display: grid; grid-template-columns: 3fr 2fr 1.5fr; gap: 1rem; padding: 0 1rem; margin-bottom: 0.5rem; font-weight: 600; color: var(--label-color); }
             .book-card { display: grid; grid-template-columns: 3fr 2fr 1.5fr; gap: 1rem; align-items: center; padding: 0.75rem 1rem; box-shadow: none; border: 1px solid var(--border-color); }
             .card-item { display: contents; }
@@ -105,9 +107,13 @@
     <!-- Aplikasi Utama -->
     <div id="mainAppPage" class="main-app-container" style="display: none;">
         <div class="main-app-header">
-            <a href="https://15-188-taufik.github.io/InventarisYBM/" rel="noopener noreferrer" style="text-decoration: none; color: inherit;">
-                <h1>📚 PERPUSTAKAAN YBM</h1>
-            </a>
+            <div class="header-title">
+                <a href="https://www.ybmbrilian.org/"rel="noopener noreferrer" style="text-decoration: none; color: inherit;">
+                    <h1>📚 PERPUSTAKAAN YBM</h1>
+                </a>
+                <!-- Elemen baru untuk pesan selamat datang -->
+                <p id="welcomeMessage" class="welcome-text"></p>
+            </div>
             <button id="logoutBtn">Logout</button>
         </div>
         <div class="controls-container">
@@ -130,7 +136,9 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('loggedInUser')) {
+            const loggedInUser = sessionStorage.getItem('loggedInUser');
+            if (loggedInUser) {
+                document.getElementById('welcomeMessage').textContent = `Selamat datang, ${loggedInUser}!`;
                 showPage('mainAppPage');
                 loadBooks();
             } else {
@@ -138,15 +146,33 @@
             }
         });
 
+        /** Fungsi baru untuk menonaktifkan semua tombol */
+        function toggleAllButtons(disabled) {
+            document.querySelectorAll('button').forEach(button => {
+                button.disabled = disabled;
+            });
+        }
+
         async function apiCall(action, payload) {
             const messageBar = document.getElementById(action.includes('login') || action.includes('signup') ? `${action.split(' ')[0]}Message` : 'message-bar');
             showMessage(messageBar, 'loading', 'Memproses...');
+            toggleAllButtons(true); // Nonaktifkan tombol saat proses dimulai
+            
             try {
                 const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, payload }) });
                 const result = await response.json();
-                if (result.result === 'success') { showMessage(messageBar, 'success', result.message); return result; } 
-                else { throw new Error(result.message); }
-            } catch (error) { showMessage(messageBar, 'error', error.message); throw error; }
+                if (result.result === 'success') {
+                    showMessage(messageBar, 'success', result.message);
+                    return result;
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                showMessage(messageBar, 'error', error.message);
+                throw error;
+            } finally {
+                toggleAllButtons(false); // Aktifkan kembali tombol setelah proses selesai
+            }
         }
 
         function showMessage(element, type, text) {
@@ -161,6 +187,7 @@
             try {
                 await apiCall('login', { username, password: document.getElementById('loginPassword').value });
                 sessionStorage.setItem('loggedInUser', username);
+                document.getElementById('welcomeMessage').textContent = `Selamat datang, ${username}!`;
                 showPage('mainAppPage');
                 loadBooks();
             } catch (error) {}
@@ -228,7 +255,6 @@
             const cards = document.getElementsByClassName('book-card');
             for (const card of cards) {
                 const title = card.querySelector('.title').textContent.toLowerCase();
-                // FIX: Cari juga berdasarkan kode buku dari atribut data-kode
                 const code = card.dataset.kode.toLowerCase();
                 card.style.display = (title.includes(filter) || code.includes(filter)) ? "" : "none";
             }
