@@ -2,30 +2,27 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <!-- 1. Viewport Meta Tag (Sangat Penting untuk Responsif) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Inventaris Buku</title>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         :root {
             --primary-color: #0d6efd;
             --background-color: #f8f9fa;
             --font-color: #212529;
             --border-color: #dee2e6;
-            --success-color: #198754;
-            --danger-color: #dc3545;
-            --grey-color: #6c757d;
         }
         body { 
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             background-color: var(--background-color); 
-            color: var(--font-color);
             margin: 0;
             padding: 1rem;
-            line-height: 1.5;
         }
         .container { 
             max-width: 950px; 
-            margin: 2rem auto; 
-            padding: 2rem; 
+            margin: 1rem auto; 
+            padding: 1.5rem; 
             background-color: #fff; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
             border-radius: 8px; 
@@ -34,18 +31,53 @@
             text-align: center; 
             color: var(--primary-color);
             margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+        
+        .controls-container {
+            display: flex;
+            flex-wrap: wrap; /* Memungkinkan item turun ke bawah di layar kecil */
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+        #searchInput {
+            flex-grow: 1;
+            min-width: 200px; /* Lebar minimum untuk search bar */
+            padding: 12px 15px; 
+            font-size: 16px;
+            border: 1px solid var(--border-color); 
+            border-radius: 5px;
+        }
+        #scanButton {
+            padding: 10px 20px; 
+            font-size: 16px;
+            background-color: var(--primary-color); 
+            color: white;
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        #scanner-container {
+            width: 100%; 
+            max-width: 500px;
+            margin: 20px auto; 
+            border-radius: 8px; 
+            overflow: hidden;
+            display: none;
         }
         #message-bar {
             text-align: center; 
             padding: 1rem; 
             margin-bottom: 1.5rem;
             border-radius: 5px; 
-            display: none; /* Hidden by default */
+            display: none; 
             font-weight: 500;
         }
-        #message-bar.loading { background-color: #e2e3e5; color: #383d41; }
+        #message-bar.loading { background-color: #e2e3e5; }
         #message-bar.success { background-color: #d1e7dd; color: #0f5132; }
         #message-bar.error { background-color: #f8d7da; color: #842029; }
+        
         table { 
             width: 100%; 
             border-collapse: collapse; 
@@ -63,141 +95,248 @@
         }
         td.peminjam-cell { 
             font-style: italic; 
-            color: var(--grey-color); 
+            color: #6c757d; 
         }
         select { 
             padding: 8px; 
             border-radius: 5px; 
             border: 1px solid #ced4da; 
             width: 100%; 
-            background-color: #fff;
-            cursor: pointer;
+            cursor: pointer; 
+        }
+
+        /* 2. CSS Media Query untuk Perangkat Mobile */
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            /* Sembunyikan header tabel, kita akan gunakan label data */
+            table thead {
+                display: none;
+            }
+            /* Ubah tabel, body, baris, dan sel menjadi block */
+            table, tbody, tr, td {
+                display: block;
+                width: 100%;
+            }
+            /* Buat setiap baris menjadi seperti kartu */
+            tr {
+                margin-bottom: 1rem;
+                border: 1px solid var(--border-color);
+                border-radius: 5px;
+                padding: 0.5rem;
+            }
+            td {
+                /* Atur agar konten berada di kanan dan label di kiri */
+                text-align: right;
+                padding-left: 50%; /* Beri ruang untuk label */
+                position: relative;
+                border: none;
+                border-bottom: 1px solid #eee;
+            }
+            td:last-child {
+                border-bottom: none;
+            }
+            /* Buat label dari atribut data-label */
+            td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 10px;
+                width: 45%;
+                padding-right: 10px;
+                text-align: left;
+                font-weight: bold;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>📚 Sistem Inventaris Buku</h1>
+        
+        <div class="controls-container">
+            <input type="text" id="searchInput" onkeyup="searchBooks()" placeholder="Cari atau scan barcode...">
+            <button id="scanButton">Scan Barcode</button>
+        </div>
+
+        <div id="scanner-container">
+            <div id="reader"></div>
+        </div>
+
         <div id="message-bar"></div>
         <div id="table-container"></div>
     </div>
 
     <script>
-        // --- PENTING! GANTI URL DI BAWAH INI DENGAN URL WEB APP ANDA ---
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxz0H6Bu3xoQazRbdeTy77hsp-WEjfwC2oP4NON5MS6QQ6OZHZ-EbxSgYobshLUp0DRBg/exec';
-
+        // --- Variabel Global dan Konstanta ---
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwjjV9D-1jzm67J6olpbQH_M8PeDLpyTeb7V6p3jScWOFdBpSRaF0eMtpkD0Hqb51W_zw/exec';
         const messageBar = document.getElementById('message-bar');
         const tableContainer = document.getElementById('table-container');
+        const searchInput = document.getElementById('searchInput');
+        const scanButton = document.getElementById('scanButton');
+        const scannerContainer = document.getElementById('scanner-container');
+        const html5QrCode = new Html5Qrcode("reader");
 
-        // Event listener untuk memuat data saat halaman dibuka
-        document.addEventListener('DOMContentLoaded', loadBooks);
+        // --- Definisi Fungsi ---
 
-        // Fungsi untuk menampilkan pesan status ke pengguna
+        /** Menampilkan pesan status kepada pengguna. */
         function showMessage(type, text) {
             messageBar.className = type;
             messageBar.textContent = text;
             messageBar.style.display = 'block';
         }
 
-        // Fungsi utama untuk memuat data buku dari Google Apps Script API
-        function loadBooks() {
-            showMessage('loading', 'Memuat data buku...');
-            fetch(API_URL)
-                .then(response => response.json())
-                .then(jsonResponse => {
-                    if (jsonResponse.result === 'success') {
-                        renderTable(jsonResponse.data);
-                        messageBar.style.display = 'none'; // Sembunyikan pesan setelah berhasil
-                    } else {
-                        throw new Error(jsonResponse.message);
-                    }
-                })
-                .catch(error => {
-                    showMessage('error', 'Gagal memuat data: ' + error.message);
-                });
-        }
-
-        // Fungsi untuk membuat dan menampilkan tabel HTML dari data buku
+        /** Membuat dan menampilkan tabel HTML dari data buku. */
         function renderTable(books) {
             if (!books || books.length === 0) {
                 showMessage('loading', 'Tidak ada data buku yang ditemukan.');
                 tableContainer.innerHTML = '';
                 return;
             }
-            // Tambahkan header tabel baru
-            let tableHTML = '<table><thead><tr><th>Kode Buku</th><th>Judul</th><th>Status</th><th>Dipinjam Oleh</th></tr></thead><tbody>';
+            let tableHTML = '<table><thead><tr><th>Kode Buku</th><th>Judul</th><th>Status</th><th>Dipinjam Oleh</th></tr></thead><tbody id="book-list">';
             
             books.forEach(book => {
+                // Tambahkan atribut `data-label` pada setiap <td> untuk tampilan mobile
                 tableHTML += `
                     <tr>
-                        <td>${book.kode}</td>
-                        <td>${book.judul}</td>
-                        <td>
+                        <td data-label="Kode Buku">${book.kode}</td>
+                        <td data-label="Judul">${book.judul}</td>
+                        <td data-label="Status">
                             <select onchange="handleStatusChange(this, '${book.kode}')">
                                 <option value="Tersedia" ${book.status === 'Tersedia' ? 'selected' : ''}>Tersedia</option>
                                 <option value="Dipinjam" ${book.status === 'Dipinjam' ? 'selected' : ''}>Dipinjam</option>
                             </select>
                         </td>
-                        <td class="peminjam-cell">${book.peminjam || '-'}</td>
+                        <td data-label="Dipinjam Oleh" class="peminjam-cell">${book.peminjam || '-'}</td>
                     </tr>
                 `;
             });
             tableHTML += '</tbody></table>';
             tableContainer.innerHTML = tableHTML;
         }
-        
-        // Fungsi yang dipanggil saat dropdown status diubah
-        function handleStatusChange(selectElement, kodeBuku) {
-            const newStatus = selectElement.value;
-            let namaPeminjam = '';
 
-            // Jika status baru adalah "Dipinjam", minta nama peminjam
-            if (newStatus === 'Dipinjam') {
-                namaPeminjam = prompt("Silakan masukkan nama peminjam:");
-                // Jika pengguna membatalkan (klik cancel) atau tidak mengisi nama, batalkan aksi
-                if (namaPeminjam === null || namaPeminjam.trim() === '') {
-                    alert('Input nama peminjam dibatalkan atau kosong. Status tidak diubah.');
-                    selectElement.value = 'Tersedia'; // Kembalikan pilihan ke 'Tersedia'
-                    return; // Hentikan fungsi
-                }
-            }
-            
-            // Lanjutkan untuk memperbarui status
-            updateStatus(kodeBuku, newStatus, namaPeminjam.trim());
+        /** Memuat data buku dari Google Apps Script API. */
+        function loadBooks() {
+            showMessage('loading', 'Memuat data buku...');
+            fetch(API_URL)
+                .then(r => r.json())
+                .then(res => {
+                    if (res.result === 'success') {
+                        renderTable(res.data);
+                        messageBar.style.display = 'none';
+                    } else {
+                        throw new Error(res.message);
+                    }
+                })
+                .catch(err => showMessage('error', 'Gagal memuat data: ' + err.message));
         }
 
-        // Fungsi untuk mengirim pembaruan ke Google Apps Script
-        function updateStatus(kodeBuku, newStatus, namaPeminjam = '') {
-            showMessage('loading', `Memperbarui status untuk ${kodeBuku}...`);
-            
-            const payload = {
-                kodeBuku: kodeBuku,
-                newStatus: newStatus,
-                namaPeminjam: namaPeminjam
-            };
-
+        /** Mengirim pembaruan ke Google Apps Script. */
+        function updateStatus(kode, status, nama = '') {
+            showMessage('loading', `Memperbarui ${kode}...`);
+            const payload = { kodeBuku: kode, newStatus: status, namaPeminjam: nama };
             fetch(API_URL, {
                 method: 'POST',
-                // Apps Script seringkali lebih mudah menangani `text/plain` untuk post sederhana
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload) 
+                body: JSON.stringify(payload)
             })
-            .then(response => response.json())
-            .then(jsonResponse => {
-                if (jsonResponse.result === 'success') {
-                    showMessage('success', jsonResponse.message);
-                    // Muat ulang seluruh data untuk memastikan tabel sinkron dengan spreadsheet
-                    setTimeout(loadBooks, 1500); // Beri jeda agar pesan sukses terbaca
+            .then(r => r.json())
+            .then(res => {
+                if (res.result === 'success') {
+                    showMessage('success', res.message);
+                    setTimeout(loadBooks, 1500);
                 } else {
-                    throw new Error(jsonResponse.message);
+                    throw new Error(res.message);
                 }
             })
-            .catch(error => {
-                showMessage('error', 'Gagal memperbarui: ' + error.message);
-                // Muat ulang data untuk mengembalikan ke kondisi sebelum gagal
+            .catch(err => {
+                showMessage('error', 'Gagal: ' + err.message);
                 setTimeout(loadBooks, 2000);
             });
         }
+
+        /** Menangani perubahan pada dropdown status, termasuk meminta nama peminjam. */
+        function handleStatusChange(el, kode) {
+            const status = el.value;
+            let nama = '';
+            if (status === 'Dipinjam') {
+                nama = prompt("Masukkan nama peminjam:");
+                if (nama === null || nama.trim() === '') {
+                    alert('Input dibatalkan.');
+                    el.value = 'Tersedia';
+                    return;
+                }
+            }
+            updateStatus(kode, status, nama.trim());
+        }
+
+        /** Menyaring tabel berdasarkan input di kotak pencarian. */
+        function searchBooks() {
+            const filter = searchInput.value.toLowerCase();
+            const tableBody = document.getElementById('book-list');
+            if (!tableBody) return;
+            const rows = tableBody.getElementsByTagName('tr');
+            for (let i = 0; i < rows.length; i++) {
+                const codeCell = rows[i].getElementsByTagName('td')[0];
+                const titleCell = rows[i].getElementsByTagName('td')[1];
+                if (codeCell && titleCell) {
+                    const codeText = codeCell.textContent || codeCell.innerText;
+                    const titleText = titleCell.textContent || titleCell.innerText;
+                    if (codeText.toLowerCase().indexOf(filter) > -1 || titleText.toLowerCase().indexOf(filter) > -1) {
+                        rows[i].style.display = "";
+                    } else {
+                        rows[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
+        // --- Fungsi untuk Barcode Scanner ---
+        
+        /** Callback jika pemindaian berhasil. */
+        const onScanSuccess = (decodedText, decodedResult) => {
+            searchInput.value = decodedText;
+            searchBooks();
+            stopScanner();
+            showMessage('success', `Barcode terdeteksi: ${decodedText}`);
+        };
+        
+        /** Callback jika pemindaian gagal (bisa diabaikan). */
+        const onScanFailure = (error) => { /* Abaikan error not found */ };
+
+        /** Menghentikan pemindai kamera. */
+        const stopScanner = () => {
+            html5QrCode.stop()
+                .then(ignore => { scannerContainer.style.display = "none"; })
+                .catch(err => { /* Abaikan error jika scanner tidak berjalan */ });
+        }
+
+        // --- Event Listeners ---
+
+        /** Memulai pemindaian saat tombol di klik. */
+        scanButton.addEventListener('click', () => {
+            if (scannerContainer.style.display === "block") {
+                stopScanner();
+                return;
+            }
+            scannerContainer.style.display = "block";
+            showMessage('loading', 'Mempersiapkan kamera...');
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                onScanSuccess,
+                onScanFailure
+            ).catch(err => {
+                showMessage('error', 'Gagal mengakses kamera. Pastikan Anda memberikan izin.');
+            });
+        });
+
+        /** Memuat data buku saat halaman pertama kali dibuka. */
+        document.addEventListener('DOMContentLoaded', loadBooks);
+
     </script>
 </body>
 </html>
