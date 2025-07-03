@@ -92,7 +92,7 @@ Taufik Hidayat NST
 <a href="https://github.com/15-188-taufik" target="_blank">
 <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="github"/>
 </a>
-<a href="https://www.linkedin.com/in/NAMA_USER_LINKEDIN_ANDA/" target="_blank">
+<a href="https://www.linkedin.com/in/taufik-hidayat-nst-379a772b5/" target="_blank">
 <img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="linkedin"/>
 </a>
 </p>
