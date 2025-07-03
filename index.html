@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Inventaris Buku</title>
+    <!-- Favicon ditambahkan di sini -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='32' cy='32' r='30' fill='%230d6efd'/%3E%3Cpath d='M48 18C48 16.8954 47.1046 16 46 16H24C20.6863 16 18 18.6863 18 22V46C18 47.1046 18.8954 48 20 48H46C47.1046 48 48 47.1046 48 46V18Z' fill='white'/%3E%3Cpath d='M16 18C16 16.8954 16.8954 16 18 16H40C43.3137 16 46 18.6863 46 22V46C46 47.1046 45.1046 48 44 48H18C16.8954 48 16 47.1046 16 46V18Z' fill='white' stroke='%230d6efd' stroke-width='2'/%3E%3Cpath d='M32 17V47' stroke='%230d6efd' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         :root {
@@ -39,8 +41,10 @@
 
         /* --- Styles for Main App --- */
         .main-app-container { max-width: 1100px; width: 100%; margin: 1rem auto; padding: 1rem; }
-        .main-app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-        .main-app-header h1 { font-size: 1.6rem; margin: 0; }
+        .main-app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .header-title { flex-grow: 1; }
+        .header-title h1 { font-size: 1.6rem; margin: 0; }
+        .welcome-text { font-size: 0.9rem; color: var(--label-color); margin: 4px 0 0 0; }
         #logoutBtn { background-color: var(--danger-color); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
         .controls-container { display: flex; gap: 10px; margin-bottom: 1.5rem; }
         #searchInput { flex-grow: 1; padding: 12px 15px; font-size: 1rem; border: 1px solid var(--border-color); border-radius: 8px; }
@@ -50,25 +54,23 @@
         .book-card .card-item:last-child { border-bottom: none; }
         .card-item .label { font-weight: 600; color: var(--label-color); }
         .card-item .data { text-align: right; flex-basis: 60%; }
-        .btn { padding: 8px 16px; border: none; border-radius: 5px; color: white; font-size: 0.9rem; font-weight: 500; cursor: pointer; }
+        .btn { padding: 8px 16px; border: none; border-radius: 5px; color: white; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: opacity 0.2s; }
         .btn-pinjam { background-color: var(--primary-color); }
         .btn-kembalikan { background-color: var(--danger-color); }
         .btn-disabled { background-color: var(--label-color); cursor: not-allowed; }
+        button:disabled { opacity: 0.6; cursor: not-allowed !important; }
         #message-bar { text-align: center; padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px; display: none; font-weight: 500; }
         #message-bar.loading, #message-bar.success, #message-bar.error { display: block; }
         #message-bar.loading { background-color: #e2e3e5; }
         #message-bar.success { background-color: #d1e7dd; color: #0f5132; }
         #message-bar.error { background-color: #f8d7da; color: #842029; }
         #scanner-container { width: 100%; max-width: 400px; margin: 20px auto; border-radius: 8px; overflow: hidden; display: none; }
-        
-        /* FIX: Sembunyikan header tabel secara default (Mobile-First) */
         .book-list-header { display: none; }
 
         @media screen and (min-width: 769px) {
             .main-app-header h1 { font-size: 2rem; }
-            /* FIX: Tampilkan header hanya di layar besar */
-            .book-list-header { display: grid; grid-template-columns: 3fr 2fr 1.5fr; gap: 1rem; padding: 0 1rem; margin-bottom: 0.5rem; font-weight: 600; color: var(--label-color); }
-            .book-card { display: grid; grid-template-columns: 3fr 2fr 1.5fr; gap: 1rem; align-items: center; padding: 0.75rem 1rem; box-shadow: none; border: 1px solid var(--border-color); }
+            .book-list-header { display: grid; grid-template-columns: 2.5fr 1.5fr 2fr 1.5fr; gap: 1rem; padding: 0 1rem; margin-bottom: 0.5rem; font-weight: 600; color: var(--label-color); }
+            .book-card { display: grid; grid-template-columns: 2.5fr 1.5fr 2fr 1.5fr; gap: 1rem; align-items: center; padding: 0.75rem 1rem; box-shadow: none; border: 1px solid var(--border-color); }
             .card-item { display: contents; }
             .card-item .label { display: none; }
             .card-item .data { text-align: left; }
@@ -105,9 +107,12 @@
     <!-- Aplikasi Utama -->
     <div id="mainAppPage" class="main-app-container" style="display: none;">
         <div class="main-app-header">
-            <a href="https://15-188-taufik.github.io/InventarisYBM/" rel="noopener noreferrer" style="text-decoration: none; color: inherit;">
-                <h1>📚 PERPUSTAKAAN YBM</h1>
-            </a>
+            <div class="header-title">
+                <a href="https://15-188-taufik.github.io/InventarisYBM/" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;">
+                    <h1>📚 PERPUSTAKAAN YBM</h1>
+                </a>
+                <p id="welcomeMessage" class="welcome-text"></p>
+            </div>
             <button id="logoutBtn">Logout</button>
         </div>
         <div class="controls-container">
@@ -116,85 +121,86 @@
         </div>
         <div id="scanner-container"><div id="reader"></div></div>
         <div id="message-bar"></div>
-        <div class="book-list-header"><span>JUDUL</span><span>DIPINJAM OLEH</span><span>AKSI</span></div>
+        <div class="book-list-header"><span>JUDUL</span><span>DIPINJAM OLEH</span><span>TANGGAL PINJAM</span><span>AKSI</span></div>
         <div id="book-list-container"></div>
     </div>
 
     <script>
+        // --- Variabel Global dan Konstanta ---
         const API_URL = 'https://script.google.com/macros/s/AKfycbwjjV9D-1jzm67J6olpbQH_M8PeDLpyTeb7V6p3jScWOFdBpSRaF0eMtpkD0Hqb51W_zw/exec';
         const pages = ['loginPage', 'signupPage', 'mainAppPage'];
-        
+
+        // --- Definisi Fungsi ---
+
+        /** Menampilkan halaman tertentu dan menyembunyikan yang lain. */
         function showPage(pageId) {
-            pages.forEach(id => { document.getElementById(id).style.display = (id === pageId) ? 'block' : 'none'; });
+            pages.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = (id === pageId) ? 'block' : 'none';
+            });
             document.body.style.alignItems = (pageId === 'mainAppPage') ? 'flex-start' : 'center';
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('loggedInUser')) {
-                showPage('mainAppPage');
-                loadBooks();
-            } else {
-                showPage('loginPage');
-            }
-        });
-
-        async function apiCall(action, payload) {
-            const messageBar = document.getElementById(action.includes('login') || action.includes('signup') ? `${action.split(' ')[0]}Message` : 'message-bar');
-            showMessage(messageBar, 'loading', 'Memproses...');
-            try {
-                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, payload }) });
-                const result = await response.json();
-                if (result.result === 'success') { showMessage(messageBar, 'success', result.message); return result; } 
-                else { throw new Error(result.message); }
-            } catch (error) { showMessage(messageBar, 'error', error.message); throw error; }
+        /** Menonaktifkan atau mengaktifkan semua tombol. */
+        function toggleAllButtons(disabled) {
+            document.querySelectorAll('button').forEach(button => {
+                button.disabled = disabled;
+            });
         }
 
+        /** Menampilkan pesan status kepada pengguna. */
         function showMessage(element, type, text) {
             if (!element) return;
             element.className = type;
             element.textContent = text;
+            element.style.display = 'block';
+        }
+        
+        /** Fungsi terpusat untuk memanggil API backend. */
+        async function apiCall(action, payload) {
+            const messageBarId = action.includes('login') || action.includes('signup') ? `${action}Message` : 'message-bar';
+            const messageBar = document.getElementById(messageBarId);
+            showMessage(messageBar, 'loading', 'Memproses...');
+            toggleAllButtons(true);
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action, payload })
+                });
+                const result = await response.json();
+                if (result.result === 'success') {
+                    showMessage(messageBar, 'success', result.message);
+                    return result;
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                showMessage(messageBar, 'error', error.message);
+                throw error;
+            } finally {
+                toggleAllButtons(false);
+            }
         }
 
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('loginUsername').value;
-            try {
-                await apiCall('login', { username, password: document.getElementById('loginPassword').value });
-                sessionStorage.setItem('loggedInUser', username);
-                showPage('mainAppPage');
-                loadBooks();
-            } catch (error) {}
-        });
-
-        document.getElementById('signupForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const password = document.getElementById('signupPassword').value;
-            if (password !== document.getElementById('confirmPassword').value) {
-                showMessage(document.getElementById('signupMessage'), 'error', 'Password tidak cocok!');
-                return;
-            }
-            try {
-                await apiCall('signup', { username: document.getElementById('signupUsername').value, password });
-                setTimeout(() => showPage('loginPage'), 2000);
-            } catch (error) {}
-        });
-
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            sessionStorage.removeItem('loggedInUser');
-            showPage('loginPage');
-        });
-
+        /** Memuat data buku dari API. */
         async function loadBooks() {
             try {
                 const result = await apiCall('getBooks');
                 renderBooks(result.data);
-            } catch (error) {}
+            } catch (error) { /* error sudah ditampilkan oleh apiCall */ }
         }
-
+        
+        /** Membuat dan menampilkan daftar buku sebagai kartu. */
         function renderBooks(books) {
             const container = document.getElementById('book-list-container');
             const loggedInUser = sessionStorage.getItem('loggedInUser');
-            if (!books || books.length === 0) { container.innerHTML = '<p>Tidak ada buku.</p>'; return; }
+            if (!books || books.length === 0) {
+                container.innerHTML = '<p>Tidak ada buku yang ditemukan.</p>';
+                return;
+            }
+            
             container.innerHTML = books.map(book => {
                 let actionButton;
                 if (book.status === 'Tersedia') {
@@ -204,45 +210,114 @@
                 } else {
                     actionButton = `<button class="btn btn-disabled" disabled>Dipinjam</button>`;
                 }
+
+                const formattedDate = book.tanggalPinjam 
+                    ? new Date(book.tanggalPinjam).toLocaleString('id-ID', { 
+                        day: 'numeric', month: 'long', year: 'numeric', 
+                        hour: '2-digit', minute: '2-digit' 
+                      }) 
+                    : '-';
+
                 return `
                     <div class="book-card" data-kode="${book.kode}">
                         <div class="card-item"><span class="label">Judul</span><span class="data title">${book.judul}</span></div>
                         <div class="card-item"><span class="label">Dipinjam Oleh</span><span class="data borrower">${book.peminjam || '-'}</span></div>
+                        <div class="card-item"><span class="label">Tanggal Pinjam</span><span class="data date">${formattedDate}</span></div>
                         <div class="card-item"><span class="label">Aksi</span><div class="data">${actionButton}</div></div>
                     </div>`;
             }).join('');
         }
 
+        /** Menangani klik pada tombol Pinjam atau Kembalikan. */
         async function handleActionClick(kodeBuku, currentStatus) {
             const loggedInUser = sessionStorage.getItem('loggedInUser');
-            let newStatus = (currentStatus === 'Tersedia') ? 'Dipinjam' : 'Tersedia';
-            let namaPeminjam = (currentStatus === 'Tersedia') ? loggedInUser : '';
+            const newStatus = (currentStatus === 'Tersedia') ? 'Dipinjam' : 'Tersedia';
+            const namaPeminjam = (currentStatus === 'Tersedia') ? loggedInUser : '';
             try {
                 await apiCall('updateStatus', { kodeBuku, newStatus, namaPeminjam });
                 setTimeout(loadBooks, 1500);
-            } catch (error) {}
+            } catch (error) { /* error sudah ditampilkan */ }
         }
-
+        
+        /** Menyaring kartu buku berdasarkan input di kotak pencarian. */
         function searchBooks() {
             const filter = document.getElementById('searchInput').value.toLowerCase();
             const cards = document.getElementsByClassName('book-card');
             for (const card of cards) {
                 const title = card.querySelector('.title').textContent.toLowerCase();
-                // FIX: Cari juga berdasarkan kode buku dari atribut data-kode
                 const code = card.dataset.kode.toLowerCase();
                 card.style.display = (title.includes(filter) || code.includes(filter)) ? "" : "none";
             }
         }
-        
+
+        // --- Fungsi untuk Barcode Scanner ---
         const html5QrCode = new Html5Qrcode("reader");
-        const onScanSuccess = (decodedText) => { document.getElementById('searchInput').value = decodedText; searchBooks(); stopScanner(); showMessage(document.getElementById('message-bar'), 'success', `Barcode terdeteksi: ${decodedText}`); };
-        const stopScanner = () => { html5QrCode.stop().then(() => document.getElementById('scanner-container').style.display = "none").catch(() => {}); }
-        document.getElementById('scanButton').addEventListener('click', () => {
-            const scannerContainer = document.getElementById('scanner-container');
-            if (scannerContainer.style.display === "block") { stopScanner(); return; }
-            scannerContainer.style.display = "block";
-            showMessage(document.getElementById('message-bar'), 'loading', 'Mempersiapkan kamera...');
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, () => {}).catch(() => showMessage(document.getElementById('message-bar'), 'error', 'Gagal mengakses kamera.'));
+        const onScanSuccess = (decodedText) => {
+            document.getElementById('searchInput').value = decodedText;
+            searchBooks();
+            stopScanner();
+            showMessage(document.getElementById('message-bar'), 'success', `Barcode terdeteksi: ${decodedText}`);
+        };
+        const stopScanner = () => {
+            html5QrCode.stop()
+                .then(() => document.getElementById('scanner-container').style.display = "none")
+                .catch(() => {});
+        };
+
+        // --- Event Listeners & Inisialisasi ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Cek sesi login
+            const loggedInUser = sessionStorage.getItem('loggedInUser');
+            if (loggedInUser) {
+                document.getElementById('welcomeMessage').textContent = `Selamat datang, ${loggedInUser}!`;
+                showPage('mainAppPage');
+                loadBooks();
+            } else {
+                showPage('loginPage');
+            }
+
+            // Tambahkan event listener ke elemen yang ada
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('loginUsername').value;
+                try {
+                    await apiCall('login', { username, password: document.getElementById('loginPassword').value });
+                    sessionStorage.setItem('loggedInUser', username);
+                    document.getElementById('welcomeMessage').textContent = `Selamat datang, ${username}!`;
+                    showPage('mainAppPage');
+                    loadBooks();
+                } catch (error) { /* error sudah ditampilkan */ }
+            });
+
+            document.getElementById('signupForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const password = document.getElementById('signupPassword').value;
+                if (password !== document.getElementById('confirmPassword').value) {
+                    showMessage(document.getElementById('signupMessage'), 'error', 'Password tidak cocok!');
+                    return;
+                }
+                try {
+                    await apiCall('signup', { username: document.getElementById('signupUsername').value, password });
+                    setTimeout(() => showPage('loginPage'), 2000);
+                } catch (error) { /* error sudah ditampilkan */ }
+            });
+
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                sessionStorage.removeItem('loggedInUser');
+                showPage('loginPage');
+            });
+
+            document.getElementById('scanButton').addEventListener('click', () => {
+                const scannerContainer = document.getElementById('scanner-container');
+                if (scannerContainer.style.display === "block") {
+                    stopScanner();
+                    return;
+                }
+                scannerContainer.style.display = "block";
+                showMessage(document.getElementById('message-bar'), 'loading', 'Mempersiapkan kamera...');
+                html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, () => {})
+                    .catch(() => showMessage(document.getElementById('message-bar'), 'error', 'Gagal mengakses kamera.'));
+            });
         });
     </script>
 </body>
