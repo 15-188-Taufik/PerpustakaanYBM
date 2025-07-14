@@ -3,247 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Inventaris Buku</title>
+    <title>Sistem Perpustakaan YBM</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='32' cy='32' r='30' fill='%230d6efd'/%3E%3Cpath d='M48 18C48 16.8954 47.1046 16 46 16H24C20.6863 16 18 18.6863 18 22V46C18 47.1046 18.8954 48 20 48H46C47.1046 48 48 47.1046 48 46V18Z' fill='white'/%3E%3Cpath d='M16 18C16 16.8954 16.8954 16 18 16H40C43.3137 16 46 18.6863 46 22V46C46 47.1046 45.1046 48 44 48H18C16.8954 48 16 47.1046 16 46V18Z' fill='white' stroke='%230d6efd' stroke-width='2'/%3E%3Cpath d='M32 17V47' stroke='%230d6efd' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
-        :root {
-            --primary-color: #0d6efd; --danger-color: #dc3545;
-            --background-color: #f0f2f5; --card-bg: #ffffff;
-            --font-color: #333; --label-color: #6c757d; --border-color: #dee2e6;
-        }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--background-color); margin: 0;
-            display: flex; align-items: center; justify-content: center; min-height: 100vh;
-        }
-        /* --- Styles for Auth Pages (Login/Signup) --- */
-        .auth-container {
-            width: 100%; max-width: 400px;
-            padding: 2rem; background-color: var(--card-bg);
-            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
+        /* ... (CSS dari versi sebelumnya, dengan tambahan untuk menu dan halaman baru) ... */
+        :root { --primary-color: #0d6efd; --danger-color: #dc3545; --background-color: #f0f2f5; --card-bg: #ffffff; --font-color: #333; --label-color: #6c757d; --border-color: #dee2e6; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--background-color); margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .page { display: none; width: 100%; }
+        .page.active { display: block; }
+
+        /* Auth Page Styles */
+        .auth-container { width: 100%; max-width: 400px; padding: 2rem; margin: auto; background-color: var(--card-bg); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .auth-container h1 { font-size: 1.5rem; text-align: center; margin-bottom: 1.5rem; }
         .form-group { margin-bottom: 1rem; }
         .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
-        .form-group input {
-            width: 100%; padding: 10px; font-size: 1rem;
-            border: 1px solid var(--border-color); border-radius: 5px; box-sizing: border-box;
-        }
-        .auth-btn {
-            width: 100%; padding: 12px; font-size: 1rem; font-weight: 600;
-            color: white; background-color: var(--primary-color);
-            border: none; border-radius: 5px; cursor: pointer; margin-top: 1rem;
-        }
+        .form-group input { width: 100%; padding: 10px; font-size: 1rem; border: 1px solid var(--border-color); border-radius: 5px; box-sizing: border-box; }
+        .auth-btn { width: 100%; padding: 12px; font-size: 1rem; font-weight: 600; color: white; background-color: var(--primary-color); border: none; border-radius: 5px; cursor: pointer; margin-top: 1rem; }
         .toggle-link { text-align: center; margin-top: 1rem; }
         .toggle-link a { color: var(--primary-color); text-decoration: none; font-weight: 500; }
 
-        /* --- Styles for Main App --- */
+        /* Main App Styles */
         .main-app-container { max-width: 1100px; width: 100%; margin: 1rem auto; padding: 1rem; }
-        .main-app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-        .main-app-header h1 { font-size: 1.6rem; margin: 0; }
-        #logoutBtn { background-color: var(--danger-color); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .main-app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .header-title h1 { font-size: 1.6rem; margin: 0; }
+        .welcome-text { font-size: 0.9rem; color: var(--label-color); margin: 4px 0 0 0; }
         .controls-container { display: flex; gap: 10px; margin-bottom: 1.5rem; }
         #searchInput { flex-grow: 1; padding: 12px 15px; font-size: 1rem; border: 1px solid var(--border-color); border-radius: 8px; }
-        #scanButton { padding: 0 20px; font-size: 1rem; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; }
         .book-card { background-color: var(--card-bg); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.07); }
         .card-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #f0f0f0; }
         .book-card .card-item:last-child { border-bottom: none; }
         .card-item .label { font-weight: 600; color: var(--label-color); }
         .card-item .data { text-align: right; flex-basis: 60%; }
         .btn { padding: 8px 16px; border: none; border-radius: 5px; color: white; font-size: 0.9rem; font-weight: 500; cursor: pointer; }
-        .btn-pinjam { background-color: var(--primary-color); }
-        .btn-kembalikan { background-color: var(--danger-color); }
-        .btn-disabled { background-color: var(--label-color); cursor: not-allowed; }
+        .btn-pinjam { background-color: var(--primary-color); } .btn-kembalikan { background-color: var(--danger-color); } .btn-disabled { background-color: var(--label-color); cursor: not-allowed; }
+        button:disabled { opacity: 0.6; cursor: not-allowed !important; }
         #message-bar { text-align: center; padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px; display: none; font-weight: 500; }
         #message-bar.loading, #message-bar.success, #message-bar.error { display: block; }
-        #message-bar.loading { background-color: #e2e3e5; }
-        #message-bar.success { background-color: #d1e7dd; color: #0f5132; }
-        #message-bar.error { background-color: #f8d7da; color: #842029; }
+        #message-bar.loading { background-color: #e2e3e5; } #message-bar.success { background-color: #d1e7dd; color: #0f5132; } #message-bar.error { background-color: #f8d7da; color: #842029; }
         #scanner-container { width: 100%; max-width: 400px; margin: 20px auto; border-radius: 8px; overflow: hidden; display: none; }
         
-        /* FIX: Sembunyikan header tabel secara default (Mobile-First) */
-        .book-list-header { display: none; }
+        /* Hamburger Menu Styles */
+        .hamburger-btn { font-size: 2rem; background: none; border: none; cursor: pointer; z-index: 1001; }
+        #menuOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
+        #sideMenu { position: fixed; top: 0; left: 0; width: 250px; height: 100%; background: var(--card-bg); box-shadow: 2px 0 5px rgba(0,0,0,0.1); transform: translateX(-100%); transition: transform 0.3s ease-in-out; z-index: 1000; padding-top: 60px; }
+        #sideMenu.open { transform: translateX(0); }
+        #sideMenu ul { list-style: none; padding: 0; margin: 0; }
+        #sideMenu ul li a { display: block; padding: 15px 20px; color: var(--font-color); text-decoration: none; font-weight: 500; }
+        #sideMenu ul li a:hover { background-color: var(--background-color); }
 
         @media screen and (min-width: 769px) {
             .main-app-header h1 { font-size: 2rem; }
-            /* FIX: Tampilkan header hanya di layar besar */
-            .book-list-header { display: grid; grid-template-columns: 3fr 2fr 1.5fr; gap: 1rem; padding: 0 1rem; margin-bottom: 0.5rem; font-weight: 600; color: var(--label-color); }
-            .book-card { display: grid; grid-template-columns: 3fr 2fr 1.5fr; gap: 1rem; align-items: center; padding: 0.75rem 1rem; box-shadow: none; border: 1px solid var(--border-color); }
-            .card-item { display: contents; }
-            .card-item .label { display: none; }
-            .card-item .data { text-align: left; }
+            .book-list-header { display: grid; grid-template-columns: 2.5fr 1.5fr 2fr 1.5fr; gap: 1rem; padding: 0 1rem; margin-bottom: 0.5rem; font-weight: 600; color: var(--label-color); }
+            .book-card { display: grid; grid-template-columns: 2.5fr 1.5fr 2fr 1.5fr; gap: 1rem; align-items: center; padding: 0.75rem 1rem; box-shadow: none; border: 1px solid var(--border-color); }
+            .card-item { display: contents; } .card-item .label { display: none; } .card-item .data { text-align: left; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Halaman Login -->
-    <div id="loginPage" class="auth-container">
-        <h1>Login Perpustakaan</h1>
-        <form id="loginForm">
-            <div class="form-group"><label for="loginUsername">Username</label><input type="text" id="loginUsername" required></div>
-            <div class="form-group"><label for="loginPassword">Password</label><input type="password" id="loginPassword" required></div>
-            <button type="submit" class="auth-btn">Login</button>
-        </form>
-        <div id="loginMessage"></div>
-        <p class="toggle-link">Belum punya akun? <a href="#" onclick="showPage('signupPage')">Daftar di sini</a></p>
+    <!-- Semua Halaman Aplikasi -->
+    <div id="app-container">
+        
+        <!-- Halaman Login -->
+        <div id="loginPage" class="page auth-container">
+            <h1>Login Perpustakaan</h1>
+            <form id="loginForm">
+                <div class="form-group"><label for="loginUsername">Username</label><input type="text" id="loginUsername" required></div>
+                <div class="form-group"><label for="loginPassword">Password</label><input type="password" id="loginPassword" required></div>
+                <button type="submit" class="auth-btn">Login</button>
+            </form>
+            <div id="loginMessage"></div>
+            <p class="toggle-link">Belum punya akun? <a href="#" onclick="showPage('signupPage')">Daftar di sini</a></p>
+        </div>
+
+        <!-- Halaman Sign-up -->
+        <div id="signupPage" class="page auth-container">
+            <h1>Daftar Akun Baru</h1>
+            <form id="signupForm">
+                <div class="form-group"><label for="signupUsername">Username</label><input type="text" id="signupUsername" required></div>
+                <div class="form-group"><label for="signupPassword">Password</label><input type="password" id="signupPassword" required></div>
+                <div class="form-group"><label for="confirmPassword">Konfirmasi Password</label><input type="password" id="confirmPassword" required></div>
+                <button type="submit" class="auth-btn">Daftar</button>
+            </form>
+            <div id="signupMessage"></div>
+            <p class="toggle-link">Sudah punya akun? <a href="#" onclick="showPage('loginPage')">Login di sini</a></p>
+        </div>
+
+        <!-- Aplikasi Utama (Kontainer untuk semua halaman setelah login) -->
+        <div id="mainApp" class="page main-app-container">
+            <div class="main-app-header">
+                <button class="hamburger-btn" onclick="toggleMenu()">&#9776;</button>
+                <div class="header-title">
+                    <a href="https://www.ybmbrilian.org/" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><h1>📚 PERPUSTAKAAN YBM</h1></a>
+                    <p id="welcomeMessage" class="welcome-text"></p>
+                </div>
+            </div>
+            
+            <!-- Halaman Home -->
+            <div id="homePage" class="content-page">
+                <div class="controls-container">
+                    <input type="text" id="searchInput" onkeyup="searchBooks()" placeholder="Cari berdasarkan judul atau kode...">
+                    <button id="scanButton">Scan Barcode</button>
+                </div>
+                <div id="scanner-container"><div id="reader"></div></div>
+                <div id="message-bar"></div>
+                <div class="book-list-header"><span>JUDUL</span><span>DIPINJAM OLEH</span><span>TANGGAL PINJAM</span><span>AKSI</span></div>
+                <div id="book-list-container"></div>
+            </div>
+
+            <!-- Halaman Riwayat -->
+            <div id="historyPage" class="content-page" style="display: none;">
+                <h2>Riwayat Peminjaman</h2>
+                <div id="history-container"></div>
+            </div>
+
+            <!-- Halaman Tambah Buku (Hanya Pustakawan) -->
+            <div id="addBookPage" class="content-page" style="display: none;">
+                <h2>Tambah Buku Baru</h2>
+                <form id="addBookForm" class="auth-container" style="margin: 0;">
+                    <div class="form-group"><label for="addBookCode">Kode Buku (Scan atau Ketik)</label><input type="text" id="addBookCode" required></div>
+                    <div class="form-group"><label for="addBookTitle">Judul Buku</label><input type="text" id="addBookTitle" required></div>
+                    <button type="submit" class="auth-btn">Tambah Buku</button>
+                </form>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Halaman Sign-up -->
-    <div id="signupPage" class="auth-container" style="display: none;">
-        <h1>Daftar Akun Baru</h1>
-        <form id="signupForm">
-            <div class="form-group"><label for="signupUsername">Username</label><input type="text" id="signupUsername" required></div>
-            <div class="form-group"><label for="signupPassword">Password</label><input type="password" id="signupPassword" required></div>
-            <div class="form-group"><label for="confirmPassword">Konfirmasi Password</label><input type="password" id="confirmPassword" required></div>
-            <button type="submit" class="auth-btn">Daftar</button>
-        </form>
-        <div id="signupMessage"></div>
-        <p class="toggle-link">Sudah punya akun? <a href="#" onclick="showPage('loginPage')">Login di sini</a></p>
-    </div>
-
-    <!-- Aplikasi Utama -->
-    <div id="mainAppPage" class="main-app-container" style="display: none;">
-        <div class="main-app-header">
-            <a href="https://15-188-taufik.github.io/InventarisYBM/" rel="noopener noreferrer" style="text-decoration: none; color: inherit;">
-                <h1>📚 PERPUSTAKAAN YBM</h1>
-            </a>
-            <button id="logoutBtn">Logout</button>
-        </div>
-        <div class="controls-container">
-            <input type="text" id="searchInput" onkeyup="searchBooks()" placeholder="Cari berdasarkan judul atau kode...">
-            <button id="scanButton">Scan Barcode</button>
-        </div>
-        <div id="scanner-container"><div id="reader"></div></div>
-        <div id="message-bar"></div>
-        <div class="book-list-header"><span>JUDUL</span><span>DIPINJAM OLEH</span><span>AKSI</span></div>
-        <div id="book-list-container"></div>
-    </div>
+    <!-- Menu Hamburger -->
+    <div id="menuOverlay" onclick="toggleMenu()"></div>
+    <nav id="sideMenu">
+        <ul id="menu-items"></ul>
+    </nav>
 
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbwjjV9D-1jzm67J6olpbQH_M8PeDLpyTeb7V6p3jScWOFdBpSRaF0eMtpkD0Hqb51W_zw/exec';
-        const pages = ['loginPage', 'signupPage', 'mainAppPage'];
-        
+        const allPages = ['loginPage', 'signupPage', 'mainApp'];
+        const contentPages = ['homePage', 'historyPage', 'addBookPage'];
+
+        // --- Navigasi & UI ---
         function showPage(pageId) {
-            pages.forEach(id => { document.getElementById(id).style.display = (id === pageId) ? 'block' : 'none'; });
-            document.body.style.alignItems = (pageId === 'mainAppPage') ? 'flex-start' : 'center';
+            allPages.forEach(id => document.getElementById(id).style.display = (id === pageId) ? 'block' : 'none');
+            document.body.style.alignItems = (pageId === 'mainApp') ? 'flex-start' : 'center';
+        }
+        function showContentPage(pageId) {
+            contentPages.forEach(id => document.getElementById(id).style.display = (id === pageId) ? 'block' : 'none');
+            toggleMenu(); // Close menu after selection
+        }
+        function toggleMenu() {
+            document.getElementById('sideMenu').classList.toggle('open');
+            document.getElementById('menuOverlay').style.display = document.getElementById('sideMenu').classList.contains('open') ? 'block' : 'none';
+        }
+        function renderMenu(role) {
+            const menu = document.getElementById('menu-items');
+            let menuHTML = `<li><a href="#" onclick="showContentPage('homePage'); loadBooks();">Home</a></li>`;
+            if (role === 'pustakawan') {
+                menuHTML += `<li><a href="#" onclick="showContentPage('historyPage'); loadHistory();">Riwayat Peminjaman (Semua)</a></li>`;
+                menuHTML += `<li><a href="#" onclick="showContentPage('addBookPage')">Tambah Buku</a></li>`;
+            } else { // Peminjam
+                menuHTML += `<li><a href="#" onclick="showContentPage('historyPage'); loadHistory();">Riwayat Peminjaman Saya</a></li>`;
+            }
+            menuHTML += `<li><a href="#" onclick="logout()">Logout</a></li>`;
+            menu.innerHTML = menuHTML;
         }
 
+        // --- Logika Inti & API ---
         document.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('loggedInUser')) {
-                showPage('mainAppPage');
+            const user = JSON.parse(sessionStorage.getItem('loggedInUser'));
+            if (user) {
+                document.getElementById('welcomeMessage').textContent = `Selamat datang, ${user.username}!`;
+                renderMenu(user.role);
+                showPage('mainApp');
                 loadBooks();
             } else {
                 showPage('loginPage');
             }
         });
-
-        async function apiCall(action, payload) {
-            const messageBar = document.getElementById(action.includes('login') || action.includes('signup') ? `${action.split(' ')[0]}Message` : 'message-bar');
-            showMessage(messageBar, 'loading', 'Memproses...');
-            try {
-                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, payload }) });
-                const result = await response.json();
-                if (result.result === 'success') { showMessage(messageBar, 'success', result.message); return result; } 
-                else { throw new Error(result.message); }
-            } catch (error) { showMessage(messageBar, 'error', error.message); throw error; }
-        }
-
-        function showMessage(element, type, text) {
-            if (!element) return;
-            element.className = type;
-            element.textContent = text;
-        }
-
+        
+        async function apiCall(action, payload) { const msgBarId = action.includes('login') || action.includes('signup') ? `${action}Message` : 'message-bar'; const msgBar = document.getElementById(msgBarId); showMessage(msgBar, 'loading', 'Memproses...'); toggleAllButtons(true); try { const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, payload }) }); const result = await response.json(); if (result.result === 'success') { showMessage(msgBar, 'success', result.message); return result; } else { throw new Error(result.message); } } catch (error) { showMessage(msgBar, 'error', error.message); throw error; } finally { toggleAllButtons(false); } }
+        function toggleAllButtons(disabled) { document.querySelectorAll('button').forEach(button => button.disabled = disabled); }
+        function showMessage(element, type, text) { if (!element) return; element.className = type; element.textContent = text; element.style.display = 'block'; }
+        document.getElementById('signupForm').addEventListener('submit', async (e) => { e.preventDefault(); const password = document.getElementById('signupPassword').value; if (password !== document.getElementById('confirmPassword').value) { showMessage(document.getElementById('signupMessage'), 'error', 'Password tidak cocok!'); return; } try { await apiCall('signup', { username: document.getElementById('signupUsername').value, password }); setTimeout(() => showPage('loginPage'), 2000); } catch (error) {} });
+        async function loadBooks() { try { const result = await apiCall('getBooks'); renderBooks(result.data); } catch (error) {} }
+        function renderBooks(books) { const container = document.getElementById('book-list-container'); const user = sessionStorage.getItem('loggedInUser'); if (!books || books.length === 0) { container.innerHTML = '<p>Tidak ada buku.</p>'; return; } container.innerHTML = books.map(book => { let btn; if (book.status === 'Tersedia') { btn = `<button class="btn btn-pinjam" onclick="handleActionClick('${book.kode}', 'Tersedia')">Pinjam</button>`; } else if (book.peminjam === JSON.parse(user).username) { btn = `<button class="btn btn-kembalikan" onclick="handleActionClick('${book.kode}', 'Dipinjam')">Kembalikan</button>`; } else { btn = `<button class="btn btn-disabled" disabled>Dipinjam</button>`; } const tgl = book.tanggalPinjam ? new Date(book.tanggalPinjam).toLocaleString('id-ID') : '-'; return `<div class="book-card" data-kode="${book.kode}"><div class="card-item"><span class="label">Judul</span><span class="data title">${book.judul}</span></div><div class="card-item"><span class="label">Dipinjam Oleh</span><span class="data borrower">${book.peminjam || '-'}</span></div><div class="card-item"><span class="label">Tgl Pinjam</span><span class="data date">${tgl}</span></div><div class="card-item"><span class="label">Aksi</span><div class="data">${btn}</div></div></div>`; }).join(''); }
+        async function handleActionClick(kodeBuku, currentStatus) { const user = JSON.parse(sessionStorage.getItem('loggedInUser')); const newStatus = (currentStatus === 'Tersedia') ? 'Dipinjam' : 'Tersedia'; const namaPeminjam = (currentStatus === 'Tersedia') ? user.username : ''; try { await apiCall('updateStatus', { kodeBuku, newStatus, namaPeminjam }); setTimeout(loadBooks, 1500); } catch (error) {} }
+        function searchBooks() { const filter = document.getElementById('searchInput').value.toLowerCase(); const cards = document.getElementsByClassName('book-card'); for (const card of cards) { const title = card.querySelector('.title').textContent.toLowerCase(); const code = card.dataset.kode.toLowerCase(); card.style.display = (title.includes(filter) || code.includes(filter)) ? "" : "none"; } }
+        const html5QrCode = new Html5Qrcode("reader"); const onScanSuccess = (decodedText) => { const targetId = document.getElementById('addBookPage').style.display === 'block' ? 'addBookCode' : 'searchInput'; document.getElementById(targetId).value = decodedText; if (targetId === 'searchInput') searchBooks(); stopScanner(); showMessage(document.getElementById('message-bar'), 'success', `Barcode terdeteksi: ${decodedText}`); }; const stopScanner = () => { html5QrCode.stop().then(() => document.getElementById('scanner-container').style.display = "none").catch(() => {}); }; document.getElementById('scanButton').addEventListener('click', () => { const scannerContainer = document.getElementById('scanner-container'); if (scannerContainer.style.display === "block") { stopScanner(); return; } scannerContainer.style.display = "block"; showMessage(document.getElementById('message-bar'), 'loading', 'Mempersiapkan kamera...'); html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, () => {}).catch(() => showMessage(document.getElementById('message-bar'), 'error', 'Gagal mengakses kamera.')); });
+        
+        // --- Handler Otentikasi ---
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const username = document.getElementById('loginUsername').value;
             try {
-                await apiCall('login', { username, password: document.getElementById('loginPassword').value });
-                sessionStorage.setItem('loggedInUser', username);
-                showPage('mainAppPage');
+                const result = await apiCall('login', { username: document.getElementById('loginUsername').value, password: document.getElementById('loginPassword').value });
+                const user = { username: result.username, role: result.role };
+                sessionStorage.setItem('loggedInUser', JSON.stringify(user));
+                document.getElementById('welcomeMessage').textContent = `Selamat datang, ${user.username}!`;
+                renderMenu(user.role);
+                showPage('mainApp');
                 loadBooks();
             } catch (error) {}
         });
+        function logout() { sessionStorage.removeItem('loggedInUser'); showPage('loginPage'); }
 
-        document.getElementById('signupForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const password = document.getElementById('signupPassword').value;
-            if (password !== document.getElementById('confirmPassword').value) {
-                showMessage(document.getElementById('signupMessage'), 'error', 'Password tidak cocok!');
-                return;
-            }
+        // --- Handler Halaman Riwayat & Tambah Buku ---
+        async function loadHistory() {
+            const user = JSON.parse(sessionStorage.getItem('loggedInUser'));
+            const historyContainer = document.getElementById('history-container');
+            historyContainer.innerHTML = "<p>Memuat riwayat...</p>";
             try {
-                await apiCall('signup', { username: document.getElementById('signupUsername').value, password });
-                setTimeout(() => showPage('loginPage'), 2000);
-            } catch (error) {}
-        });
-
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            sessionStorage.removeItem('loggedInUser');
-            showPage('loginPage');
-        });
-
-        async function loadBooks() {
-            try {
-                const result = await apiCall('getBooks');
-                renderBooks(result.data);
+                const result = await apiCall('getHistory', user);
+                renderHistory(result.data);
             } catch (error) {}
         }
-
-        function renderBooks(books) {
-            const container = document.getElementById('book-list-container');
-            const loggedInUser = sessionStorage.getItem('loggedInUser');
-            if (!books || books.length === 0) { container.innerHTML = '<p>Tidak ada buku.</p>'; return; }
-            container.innerHTML = books.map(book => {
-                let actionButton;
-                if (book.status === 'Tersedia') {
-                    actionButton = `<button class="btn btn-pinjam" onclick="handleActionClick('${book.kode}', 'Tersedia')">Pinjam</button>`;
-                } else if (book.peminjam === loggedInUser) {
-                    actionButton = `<button class="btn btn-kembalikan" onclick="handleActionClick('${book.kode}', 'Dipinjam')">Kembalikan</button>`;
-                } else {
-                    actionButton = `<button class="btn btn-disabled" disabled>Dipinjam</button>`;
-                }
+        function renderHistory(logs) {
+            const historyContainer = document.getElementById('history-container');
+            if (!logs || logs.length === 0) { historyContainer.innerHTML = '<p>Tidak ada riwayat peminjaman.</p>'; return; }
+            historyContainer.innerHTML = logs.map(log => {
+                const tglPinjam = new Date(log.tanggalPinjam).toLocaleString('id-ID');
+                const tglKembali = log.tanggalKembali ? new Date(log.tanggalKembali).toLocaleString('id-ID') : '-';
                 return `
-                    <div class="book-card" data-kode="${book.kode}">
-                        <div class="card-item"><span class="label">Judul</span><span class="data title">${book.judul}</span></div>
-                        <div class="card-item"><span class="label">Dipinjam Oleh</span><span class="data borrower">${book.peminjam || '-'}</span></div>
-                        <div class="card-item"><span class="label">Aksi</span><div class="data">${actionButton}</div></div>
-                    </div>`;
+                    <div class="book-card">
+                        <div class="card-item"><span class="label">Judul</span><span class="data">${log.judul}</span></div>
+                        <div class="card-item"><span class="label">Peminjam</span><span class="data">${log.peminjam}</span></div>
+                        <div class="card-item"><span class="label">Tgl Pinjam</span><span class="data">${tglPinjam}</span></div>
+                        <div class="card-item"><span class="label">Tgl Kembali</span><span class="data">${tglKembali}</span></div>
+                        <div class="card-item"><span class="label">Status</span><span class="data">${log.status}</span></div>
+                    </div>
+                `;
             }).join('');
         }
-
-        async function handleActionClick(kodeBuku, currentStatus) {
-            const loggedInUser = sessionStorage.getItem('loggedInUser');
-            let newStatus = (currentStatus === 'Tersedia') ? 'Dipinjam' : 'Tersedia';
-            let namaPeminjam = (currentStatus === 'Tersedia') ? loggedInUser : '';
+        document.getElementById('addBookForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const kodeBuku = document.getElementById('addBookCode').value;
+            const judulBuku = document.getElementById('addBookTitle').value;
             try {
-                await apiCall('updateStatus', { kodeBuku, newStatus, namaPeminjam });
-                setTimeout(loadBooks, 1500);
+                await apiCall('addBook', { kodeBuku, judulBuku });
+                document.getElementById('addBookForm').reset();
+                setTimeout(() => { showContentPage('homePage'); loadBooks(); }, 1500);
             } catch (error) {}
-        }
-
-        function searchBooks() {
-            const filter = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.getElementsByClassName('book-card');
-            for (const card of cards) {
-                const title = card.querySelector('.title').textContent.toLowerCase();
-                // FIX: Cari juga berdasarkan kode buku dari atribut data-kode
-                const code = card.dataset.kode.toLowerCase();
-                card.style.display = (title.includes(filter) || code.includes(filter)) ? "" : "none";
-            }
-        }
-        
-        const html5QrCode = new Html5Qrcode("reader");
-        const onScanSuccess = (decodedText) => { document.getElementById('searchInput').value = decodedText; searchBooks(); stopScanner(); showMessage(document.getElementById('message-bar'), 'success', `Barcode terdeteksi: ${decodedText}`); };
-        const stopScanner = () => { html5QrCode.stop().then(() => document.getElementById('scanner-container').style.display = "none").catch(() => {}); }
-        document.getElementById('scanButton').addEventListener('click', () => {
-            const scannerContainer = document.getElementById('scanner-container');
-            if (scannerContainer.style.display === "block") { stopScanner(); return; }
-            scannerContainer.style.display = "block";
-            showMessage(document.getElementById('message-bar'), 'loading', 'Mempersiapkan kamera...');
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, () => {}).catch(() => showMessage(document.getElementById('message-bar'), 'error', 'Gagal mengakses kamera.'));
         });
+
     </script>
 </body>
 </html>
